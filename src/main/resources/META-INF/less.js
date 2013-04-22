@@ -4151,10 +4151,16 @@ tree.jsify = function (obj) {
 var name;
 
 function loadStyleSheet(sheet, callback, reload, remaining) {
-    var endOfPath = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\')),
-        sheetName = name.slice(0, endOfPath + 1) + sheet.href,
-        contents = sheet.contents || {},
-        input = readFile(sheetName);
+
+    var endOfPath = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
+    
+    var sheetName = sheet.href;
+    if (!/^\//.test(sheet.href) && !/^\w+:/.test(sheet.href)) {
+		sheetName = name.slice(0, endOfPath + 1) + sheet.href
+	}
+    var contents = sheet.contents || {};
+    
+    var input = readFromFile(sheetName);
         
     contents[sheetName] = input;
         
@@ -4182,66 +4188,23 @@ function writeFile(filename, content) {
 }
 
 // Command line integration via Rhino
-(function (args) {
-    var output,
-        compress = false,
-        i;
-        
-    for(i = 0; i < args.length; i++) {
-        switch(args[i]) {
-            case "-x":
-                compress = true;
-                break;
-            default:
-                if (!name) {
-                    name = args[i];
-                } else if (!output) {
-                    output = args[i];
-                } else {
-                    print("unrecognised parameters");
-                    print("input_file [output_file] [-x]");
-                }
-        }
-    }
-
-    if (!name) {
-        print('No files present in the fileset; Check your pattern match in build.xml');
-        quit(1);
-    }
+function compile_inner(source, location, compress,callback) {
+    name = location;
     path = name.split("/");path.pop();path=path.join("/")
 
-    var input = readFile(name);
+    var input = source;
 
-    if (!input) {
-        print('lesscss: couldn\'t open file ' + name);
-        quit(1);
-    }
-
-    var result;
     try {
         var parser = new less.Parser();
         parser.parse(input, function (e, root) {
             if (e) {
-                error(e, name);
-                quit(1);
-            } else {
-                result = root.toCSS({compress: compress || false});
-                if (output) {
-                    writeFile(output, result);
-                    print("Written to " + output);
-                } else {
-                    print(result);
-                }
-                quit(0);
-            }
+                error(e, name);            } else {
+                var result = root.toCSS({compress: compress || false});
+                callback(result);            }
         });
-    }
-    catch(e) {
+    } catch(e) {
         error(e, name);
-        quit(1);
-    }
-    print("done");
-}(arguments));
+    }}
 
 function error(e, filename) {
 
@@ -4269,5 +4232,5 @@ function error(e, filename) {
         errorline(e, 1);
         errorline(e, 2);
     }
-   print(content);
+    throw e;
 }

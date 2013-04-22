@@ -129,9 +129,9 @@ public class LessEngineTest {
 
 	@Test
 	public void compileToCompressedStringForMultipleImports() throws LessException, IOException {
-		String expected = "body{font-family:'Helvetica Neue',Arial,sans-serif}body{width:960px;margin:0}" + 
-				"#header{border-radius:5px;-webkit-border-radius:5px;-moz-border-radius:5px}" + 
-				"#footer{border-radius:10px;-webkit-border-radius:10px;-moz-border-radius:10px}";
+		String expected = "body{font-family:'Helvetica Neue',Arial,sans-serif;}\nbody{width:960px;margin:0;}\n" + 
+				"#header{border-radius:5px;-webkit-border-radius:5px;-moz-border-radius:5px;}\n" + 
+				"#footer{border-radius:10px;-webkit-border-radius:10px;-moz-border-radius:10px;}\n";
 		assertEquals(expected, engine.compile(getResource("css/multiple-imports.css"), true));
 	}
 
